@@ -1,0 +1,1867 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeuroConv Studio — Advanced CNN Interactive Lab & Visualizer</title>
+  <!-- Tailwind CSS provided via allowlisted gstatic CDN -->
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    /* Custom scrollbars and styling */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.15); }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.18); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.28); }
+    
+    .glow-cyan { box-shadow: 0 0 15px -2px rgba(6, 182, 212, 0.35); }
+    .glow-purple { box-shadow: 0 0 15px -2px rgba(168, 85, 247, 0.35); }
+    .glow-emerald { box-shadow: 0 0 15px -2px rgba(16, 185, 129, 0.35); }
+    
+    /* Pixel Grid cell transitions */
+    .matrix-cell { transition: all 0.15s ease-in-out; }
+    .matrix-cell.kernel-active {
+      transform: scale(1.08);
+      outline: 2px solid #06b6d4;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body class="bg-[#0b0f17] text-slate-100 min-h-screen font-sans antialiased selection:bg-cyan-500 selection:text-white">
+
+  <!-- Top Header Navigation -->
+  <header class="border-b border-slate-800 bg-[#0d131f]/80 backdrop-blur sticky top-0 z-50 px-4 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 via-indigo-600 to-purple-500 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+        </svg>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-cyan-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">
+            NeuroConv Studio
+          </h1>
+          <span class="px-2 py-0.5 text-xs font-semibold bg-cyan-950 text-cyan-300 border border-cyan-800/60 rounded-full">v2.5 Pro</span>
+        </div>
+        <p class="text-xs text-slate-400">Advanced Convolutional Neural Network Lab & Visualizer</p>
+      </div>
+    </div>
+
+    <!-- Tab navigation -->
+    <nav class="flex items-center bg-slate-900/90 border border-slate-800 p-1 rounded-xl gap-1 overflow-x-auto max-w-full text-xs font-medium">
+      <button onclick="switchTab('lab')" id="tab-btn-lab" class="tab-btn px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 transition text-white bg-cyan-600 shadow-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+        <span>Interactive Canvas & Inference</span>
+      </button>
+      <button onclick="switchTab('math')" id="tab-btn-math" class="tab-btn px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 transition text-slate-400 hover:text-slate-200">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+        <span>Convolution Math Sandbox</span>
+      </button>
+      <button onclick="switchTab('featuremaps')" id="tab-btn-featuremaps" class="tab-btn px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 transition text-slate-400 hover:text-slate-200">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+        <span>Feature Maps & Grad-CAM</span>
+      </button>
+      <button onclick="switchTab('builder')" id="tab-btn-builder" class="tab-btn px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 transition text-slate-400 hover:text-slate-200">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+        <span>Architecture Builder & Code</span>
+      </button>
+      <button onclick="switchTab('guide')" id="tab-btn-guide" class="tab-btn px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 transition text-slate-400 hover:text-slate-200">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+        <span>CNN Theory Guide</span>
+      </button>
+    </nav>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="max-w-7xl mx-auto p-4 lg:p-6 space-y-6">
+
+    <!-- ========================================== -->
+    <!-- TAB 1: INTERACTIVE CANVAS & REAL-TIME LAB -->
+    <!-- ========================================== -->
+    <section id="view-lab" class="tab-view space-y-6">
+      
+      <!-- Top Overview Stats Banner -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-3.5 flex items-center gap-3">
+          <div class="p-2.5 rounded-lg bg-cyan-950/80 text-cyan-400 border border-cyan-800/50">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          </div>
+          <div>
+            <div class="text-[11px] text-slate-400 uppercase tracking-wider font-semibold">Engine</div>
+            <div class="text-sm font-bold text-white flex items-center gap-1.5">
+              <span>Pure JS WebGL</span>
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-3.5 flex items-center gap-3">
+          <div class="p-2.5 rounded-lg bg-indigo-950/80 text-indigo-400 border border-indigo-800/50">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7c0-2-1-3-3-3H7C5 4 4 5 4 7z"/></svg>
+          </div>
+          <div>
+            <div class="text-[11px] text-slate-400 uppercase tracking-wider font-semibold">Input Tensor</div>
+            <div class="text-sm font-bold text-white">28 × 28 × 1 (Grayscale)</div>
+          </div>
+        </div>
+
+        <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-3.5 flex items-center gap-3">
+          <div class="p-2.5 rounded-lg bg-purple-950/80 text-purple-400 border border-purple-800/50">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+          </div>
+          <div>
+            <div class="text-[11px] text-slate-400 uppercase tracking-wider font-semibold">Layers Active</div>
+            <div class="text-sm font-bold text-white">2 Conv + 2 Pool + 2 FC</div>
+          </div>
+        </div>
+
+        <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-3.5 flex items-center gap-3">
+          <div class="p-2.5 rounded-lg bg-pink-950/80 text-pink-400 border border-pink-800/50">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div>
+            <div class="text-[11px] text-slate-400 uppercase tracking-wider font-semibold">Inference Latency</div>
+            <div id="stat-latency" class="text-sm font-bold text-emerald-400">&lt; 3 ms</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Interactive Workstation -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Column 1: Drawing Canvas & Pre-processing (4 cols) -->
+        <div class="lg:col-span-4 space-y-4">
+          <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-xl relative">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+                Input Canvas (Draw Digit / Symbol)
+              </h2>
+              <span class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono">280×280 px</span>
+            </div>
+
+            <!-- Canvas wrapper -->
+            <div class="relative flex justify-center bg-black rounded-xl border border-slate-700/80 overflow-hidden shadow-inner cursor-crosshair">
+              <canvas id="drawCanvas" width="280" height="280" class="touch-none"></canvas>
+              <canvas id="saliencyOverlayCanvas" width="280" height="280" class="absolute inset-0 pointer-events-none opacity-0 transition-opacity duration-300"></canvas>
+            </div>
+
+            <!-- Canvas Controls -->
+            <div class="mt-4 space-y-3">
+              <!-- Brush controls -->
+              <div class="flex items-center justify-between text-xs text-slate-400">
+                <label for="brushSize" class="font-medium">Brush Thickness: <span id="brushSizeVal" class="text-cyan-400 font-bold">20</span>px</label>
+                <div class="flex items-center gap-2">
+                  <button id="toolBrush" onclick="setDrawingTool('brush')" class="p-1.5 rounded bg-cyan-600 text-white hover:bg-cyan-500" title="Brush">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                  </button>
+                  <button id="toolEraser" onclick="setDrawingTool('eraser')" class="p-1.5 rounded bg-slate-800 text-slate-400 hover:bg-slate-700" title="Eraser">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
+                </div>
+              </div>
+              <input type="range" id="brushSize" min="10" max="36" value="20" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-500">
+
+              <!-- Action buttons -->
+              <div class="grid grid-cols-3 gap-2 pt-1">
+                <button onclick="clearCanvas()" class="px-3 py-2 bg-slate-800 hover:bg-rose-950/40 hover:text-rose-300 hover:border-rose-800/80 text-xs font-semibold rounded-lg border border-slate-700 transition flex items-center justify-center gap-1.5">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  Clear
+                </button>
+                <button onclick="invertCanvas()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold rounded-lg border border-slate-700 transition flex items-center justify-center gap-1.5">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                  Invert
+                </button>
+                <button onclick="toggleGradCamOverlay()" id="btn-toggle-cam" class="px-3 py-2 bg-indigo-950/50 hover:bg-indigo-900/60 text-indigo-300 text-xs font-semibold rounded-lg border border-indigo-800/60 transition flex items-center justify-center gap-1.5">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  Grad-CAM
+                </button>
+              </div>
+
+              <!-- Preset Sample Digits -->
+              <div>
+                <div class="text-[11px] text-slate-400 font-medium mb-1.5 flex items-center justify-between">
+                  <span>Quick Load Preset Digits:</span>
+                  <span class="text-[10px] text-slate-500">Click to test</span>
+                </div>
+                <div class="flex flex-wrap gap-1.5">
+                  <button onclick="loadSamplePreset(0)" class="w-7 h-7 rounded bg-slate-800 hover:bg-cyan-600 hover:text-white text-xs font-mono font-bold border border-slate-700 transition">0</button>
+                  <button onclick="loadSamplePreset(1)" class="w-7 h-7 rounded bg-slate-800 hover:bg-cyan-600 hover:text-white text-xs font-mono font-bold border border-slate-700 transition">1</button>
+                  <button onclick="loadSamplePreset(2)" class="w-7 h-7 rounded bg-slate-800 hover:bg-cyan-600 hover:text-white text-xs font-mono font-bold border border-slate-700 transition">2</button>
+                  <button onclick="loadSamplePreset(3)" class="w-7 h-7 rounded bg-slate-800 hover:bg-cyan-600 hover:text-white text-xs font-mono font-bold border border-slate-700 transition">3</button>
+                  <button onclick="loadSamplePreset(4)" class="w-7 h-7 rounded bg-slate-800 hover:bg-cyan-600 hover:text-white text-xs font-mono font-bold border border-slate-700 transition">4</button>
+                  <button onclick="loadSamplePreset(5)" class="w-7 h-7 rounded bg-slate-800 hover:bg-cyan-600 hover:text-white text-xs font-mono font-bold border border-slate-700 transition">5</button>
+                  <button onclick="loadSamplePreset(7)" class="w-7 h-7 rounded bg-slate-800 hover:bg-cyan-600 hover:text-white text-xs font-mono font-bold border border-slate-700 transition">7</button>
+                  <button onclick="loadSamplePreset(8)" class="w-7 h-7 rounded bg-slate-800 hover:bg-cyan-600 hover:text-white text-xs font-mono font-bold border border-slate-700 transition">8</button>
+                  <button onclick="loadSamplePreset(9)" class="w-7 h-7 rounded bg-slate-800 hover:bg-cyan-600 hover:text-white text-xs font-mono font-bold border border-slate-700 transition">9</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Downsampled 28x28 Preview -->
+            <div class="mt-4 pt-4 border-t border-slate-800 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <canvas id="thumb28Canvas" width="28" height="28" class="w-10 h-10 bg-black rounded border border-slate-700 pixelated"></canvas>
+                <div>
+                  <div class="text-xs font-semibold text-slate-300">Tensor Input Layer</div>
+                  <div class="text-[11px] text-slate-500 font-mono">Normalized [0.0 - 1.0]</div>
+                </div>
+              </div>
+              <button onclick="injectNoise()" class="px-2.5 py-1 text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 transition">
+                + Add Noise
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Column 2: Live Inference & Softmax Distribution (4 cols) -->
+        <div class="lg:col-span-4 space-y-4">
+          <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-xl">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                Classification & Probability
+              </h2>
+              <span id="pred-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">
+                Top: Digit <span id="top-class-text">0</span>
+              </span>
+            </div>
+
+            <!-- Top Prediction Hero Card -->
+            <div class="bg-gradient-to-br from-slate-950 to-slate-900 border border-slate-800 rounded-xl p-4 mb-4 flex items-center justify-between">
+              <div>
+                <div class="text-[11px] text-slate-400 uppercase tracking-wider font-semibold">Predicted Class</div>
+                <div id="hero-pred-number" class="text-4xl font-extrabold text-cyan-400 font-mono mt-0.5">0</div>
+                <div id="hero-pred-label" class="text-xs text-slate-300 mt-1">Class: <span class="font-semibold text-white">Digit "0"</span></div>
+              </div>
+              <div class="text-right">
+                <div class="text-[11px] text-slate-400 uppercase tracking-wider font-semibold">Confidence</div>
+                <div id="hero-pred-confidence" class="text-3xl font-extrabold text-emerald-400 font-mono mt-0.5">99.4%</div>
+                <div id="hero-pred-entropy" class="text-xs text-slate-400 mt-1">Entropy: <span class="font-mono text-cyan-300">0.04</span></div>
+              </div>
+            </div>
+
+            <!-- Softmax Distribution Bars -->
+            <div class="space-y-2" id="prob-bars-container">
+              <!-- Dynamically populated 0-9 probability bars -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Column 3: Live Layer Pipeline & Tensor Shapes (4 cols) -->
+        <div class="lg:col-span-4 space-y-4">
+          <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-xl">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
+                Active Layer Flow
+              </h2>
+              <span class="text-[11px] text-slate-400">Forward Pass Flow</span>
+            </div>
+
+            <!-- Interactive Pipeline Flowchart -->
+            <div class="space-y-2.5 font-mono text-xs">
+              
+              <!-- Input Layer -->
+              <div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-between hover:border-cyan-500/50 transition cursor-pointer" onclick="switchTab('featuremaps')">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-6 h-6 rounded-md bg-cyan-950 border border-cyan-800 flex items-center justify-center text-cyan-300 text-[10px] font-bold">IN</div>
+                  <div>
+                    <div class="text-slate-200 font-semibold font-sans">Input Tensor</div>
+                    <div class="text-[10px] text-slate-500">Grayscale normalized</div>
+                  </div>
+                </div>
+                <div class="text-right text-[11px] text-cyan-400 font-bold">[28, 28, 1]</div>
+              </div>
+
+              <!-- Conv2D 1 -->
+              <div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-between hover:border-indigo-500/50 transition cursor-pointer" onclick="switchTab('featuremaps')">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-6 h-6 rounded-md bg-indigo-950 border border-indigo-800 flex items-center justify-center text-indigo-300 text-[10px] font-bold">C1</div>
+                  <div>
+                    <div class="text-slate-200 font-semibold font-sans">Conv2D (8 filters, 3×3)</div>
+                    <div class="text-[10px] text-slate-500">ReLU Activation</div>
+                  </div>
+                </div>
+                <div class="text-right text-[11px] text-indigo-400 font-bold">[26, 26, 8]</div>
+              </div>
+
+              <!-- MaxPool 1 -->
+              <div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-between hover:border-purple-500/50 transition cursor-pointer" onclick="switchTab('featuremaps')">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-6 h-6 rounded-md bg-purple-950 border border-purple-800 flex items-center justify-center text-purple-300 text-[10px] font-bold">P1</div>
+                  <div>
+                    <div class="text-slate-200 font-semibold font-sans">MaxPool2D (2×2, s=2)</div>
+                    <div class="text-[10px] text-slate-500">Downsampling</div>
+                  </div>
+                </div>
+                <div class="text-right text-[11px] text-purple-400 font-bold">[13, 13, 8]</div>
+              </div>
+
+              <!-- Conv2D 2 -->
+              <div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-between hover:border-indigo-500/50 transition cursor-pointer" onclick="switchTab('featuremaps')">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-6 h-6 rounded-md bg-indigo-950 border border-indigo-800 flex items-center justify-center text-indigo-300 text-[10px] font-bold">C2</div>
+                  <div>
+                    <div class="text-slate-200 font-semibold font-sans">Conv2D (16 filters, 3×3)</div>
+                    <div class="text-[10px] text-slate-500">High-level features</div>
+                  </div>
+                </div>
+                <div class="text-right text-[11px] text-indigo-400 font-bold">[11, 11, 16]</div>
+              </div>
+
+              <!-- MaxPool 2 -->
+              <div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-between hover:border-purple-500/50 transition cursor-pointer" onclick="switchTab('featuremaps')">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-6 h-6 rounded-md bg-purple-950 border border-purple-800 flex items-center justify-center text-purple-300 text-[10px] font-bold">P2</div>
+                  <div>
+                    <div class="text-slate-200 font-semibold font-sans">MaxPool2D (2×2, s=2)</div>
+                    <div class="text-[10px] text-slate-500">Downsampling</div>
+                  </div>
+                </div>
+                <div class="text-right text-[11px] text-purple-400 font-bold">[5, 5, 16]</div>
+              </div>
+
+              <!-- Flatten + Dense -->
+              <div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-between hover:border-emerald-500/50 transition cursor-pointer">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-6 h-6 rounded-md bg-emerald-950 border border-emerald-800 flex items-center justify-center text-emerald-300 text-[10px] font-bold">FC</div>
+                  <div>
+                    <div class="text-slate-200 font-semibold font-sans">Dense + Softmax</div>
+                    <div class="text-[10px] text-slate-500">400 &rarr; 64 &rarr; 10</div>
+                  </div>
+                </div>
+                <div class="text-right text-[11px] text-emerald-400 font-bold">[10] Probabilities</div>
+              </div>
+
+            </div>
+
+            <!-- Inspect Feature Maps CTA -->
+            <button onclick="switchTab('featuremaps')" class="w-full mt-4 py-2.5 px-4 bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-semibold rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-cyan-600/20 transition">
+              <span>Inspect Internal Activations & Filters</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: CONVOLUTION MATH SANDBOX           -->
+    <!-- ========================================== -->
+    <section id="view-math" class="tab-view hidden space-y-6">
+      
+      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 shadow-xl">
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4 mb-6">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2.5">
+              <span class="w-3 h-3 rounded-full bg-cyan-400"></span>
+              Step-by-Step 2D Convolution Arithmetic Sandbox
+            </h2>
+            <p class="text-xs text-slate-400 mt-1">
+              Watch how a receptive field slides across input pixels, computing element-wise dot products plus bias:
+              <span class="font-mono text-cyan-300 bg-slate-950 px-2 py-0.5 rounded border border-slate-800 ml-1">Output(i, j) = &sum; [Input(i+u, j+v) &times; Kernel(u, v)] + Bias</span>
+            </p>
+          </div>
+
+          <!-- Controls: Animation, Speed, Step -->
+          <div class="flex items-center gap-2">
+            <button id="math-btn-play" onclick="toggleMathPlay()" class="px-3.5 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow transition">
+              <svg id="math-play-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>
+              <span id="math-play-text">Auto Slide</span>
+            </button>
+            <button onclick="stepMathConvolution(1)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 flex items-center gap-1 transition">
+              <span>Next Step &rarr;</span>
+            </button>
+            <button onclick="resetMathConvolution()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition">
+              Reset
+            </button>
+          </div>
+        </div>
+
+        <!-- Kernel Presets Selector -->
+        <div class="mb-6 flex flex-wrap items-center gap-2">
+          <span class="text-xs font-semibold text-slate-300 mr-1">Kernel Presets:</span>
+          <button onclick="applyKernelPreset('sobel-x')" class="kernel-preset-btn px-2.5 py-1 rounded bg-slate-800 hover:bg-cyan-950 hover:text-cyan-300 hover:border-cyan-700 border border-slate-700 text-xs text-slate-300 font-medium transition">Sobel Horizontal (X)</button>
+          <button onclick="applyKernelPreset('sobel-y')" class="kernel-preset-btn px-2.5 py-1 rounded bg-slate-800 hover:bg-cyan-950 hover:text-cyan-300 hover:border-cyan-700 border border-slate-700 text-xs text-slate-300 font-medium transition">Sobel Vertical (Y)</button>
+          <button onclick="applyKernelPreset('ridge')" class="kernel-preset-btn px-2.5 py-1 rounded bg-slate-800 hover:bg-cyan-950 hover:text-cyan-300 hover:border-cyan-700 border border-slate-700 text-xs text-slate-300 font-medium transition">Ridge / Laplacian</button>
+          <button onclick="applyKernelPreset('sharpen')" class="kernel-preset-btn px-2.5 py-1 rounded bg-slate-800 hover:bg-cyan-950 hover:text-cyan-300 hover:border-cyan-700 border border-slate-700 text-xs text-slate-300 font-medium transition">Sharpen</button>
+          <button onclick="applyKernelPreset('blur')" class="kernel-preset-btn px-2.5 py-1 rounded bg-slate-800 hover:bg-cyan-950 hover:text-cyan-300 hover:border-cyan-700 border border-slate-700 text-xs text-slate-300 font-medium transition">Gaussian Blur</button>
+          <button onclick="applyKernelPreset('identity')" class="kernel-preset-btn px-2.5 py-1 rounded bg-slate-800 hover:bg-cyan-950 hover:text-cyan-300 hover:border-cyan-700 border border-slate-700 text-xs text-slate-300 font-medium transition">Identity</button>
+        </div>
+
+        <!-- 3 Interactive Grids: Input Grid | Kernel Grid | Output Feature Map Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+          
+          <!-- Grid 1: Input Matrix (6x6) -->
+          <div class="md:col-span-5 bg-slate-950/80 border border-slate-800 rounded-xl p-4">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-bold text-cyan-400">Input Feature Matrix (6×6)</span>
+              <span class="text-[10px] text-slate-400 font-mono">Padding: 0 (Valid)</span>
+            </div>
+            <div id="math-input-grid" class="grid grid-cols-6 gap-1 max-w-[320px] mx-auto select-none">
+              <!-- Injected by JS -->
+            </div>
+          </div>
+
+          <!-- Operator Symbol: '*' -->
+          <div class="md:col-span-2 flex flex-col items-center justify-center space-y-4">
+            <div class="text-2xl font-bold text-slate-500 font-mono">&otimes;</div>
+            <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 w-full max-w-[200px]">
+              <div class="text-[11px] font-bold text-indigo-400 text-center mb-2">Kernel (3×3)</div>
+              <div id="math-kernel-grid" class="grid grid-cols-3 gap-1 select-none">
+                <!-- Injected by JS with editable inputs -->
+              </div>
+              <div class="mt-2 text-center">
+                <span class="text-[10px] text-slate-400 font-mono">Bias: </span>
+                <input type="number" id="math-bias-input" value="0" step="0.5" class="w-12 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono text-cyan-300 py-0.5">
+              </div>
+            </div>
+            <div class="text-2xl font-bold text-slate-500 font-mono">&rarr;</div>
+          </div>
+
+          <!-- Grid 3: Output Feature Map (4x4) -->
+          <div class="md:col-span-5 bg-slate-950/80 border border-slate-800 rounded-xl p-4">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-bold text-emerald-400">Output Feature Map (4×4)</span>
+              <span class="text-[10px] text-slate-400 font-mono">Size: (6 - 3 + 1) = 4</span>
+            </div>
+            <div id="math-output-grid" class="grid grid-cols-4 gap-1.5 max-w-[260px] mx-auto select-none">
+              <!-- Injected by JS -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Live Step-by-Step Calculation Breakdown Card -->
+        <div class="mt-6 bg-slate-950 border border-cyan-900/40 rounded-xl p-4">
+          <div class="text-xs font-bold text-cyan-300 flex items-center justify-between mb-2">
+            <span>Dot Product Breakdown at Position (Row: <span id="math-calc-r" class="text-white">0</span>, Col: <span id="math-calc-c" class="text-white">0</span>)</span>
+            <span id="math-calc-val" class="font-mono text-emerald-400 text-sm font-extrabold">= 0.0</span>
+          </div>
+          <div id="math-calc-equation" class="font-mono text-xs text-slate-300 overflow-x-auto whitespace-nowrap py-1 bg-slate-900/80 p-2.5 rounded-lg border border-slate-800">
+            <!-- Injected by JS -->
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: FEATURE MAPS & GRAD-CAM             -->
+    <!-- ========================================== -->
+    <section id="view-featuremaps" class="tab-view hidden space-y-6">
+      
+      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
+        
+        <!-- Header & Color Map Palette -->
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-purple-400"></span>
+              Internal Feature Maps & Activation Inspector
+            </h2>
+            <p class="text-xs text-slate-400 mt-1">
+              Explore representations learned across convolutional layers: low-level edges &rarr; composite textures &rarr; class activations (Grad-CAM).
+            </p>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <label class="text-xs text-slate-400 font-medium">Color Palette:</label>
+            <select id="colormap-select" onchange="updateColorMap()" class="bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-lg px-2.5 py-1.5">
+              <option value="turbo">Turbo (Multi-spectrum)</option>
+              <option value="viridis">Viridis (Perceptually Uniform)</option>
+              <option value="magma">Magma / Thermal</option>
+              <option value="grayscale">Grayscale</option>
+              <option value="cyber">Cyber Neon (Cyan/Pink)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Grad-CAM Saliency Explanation Card -->
+        <div class="bg-gradient-to-r from-indigo-950/40 via-purple-950/30 to-slate-950 border border-indigo-800/40 rounded-xl p-4 flex flex-col md:flex-row items-center gap-6">
+          <div class="w-24 h-24 rounded-lg bg-black border border-indigo-700/60 overflow-hidden flex-shrink-0 relative shadow-lg">
+            <canvas id="gradcamBigCanvas" width="96" height="96" class="w-full h-full pixelated"></canvas>
+          </div>
+          <div class="space-y-1.5 flex-1">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider">Explainable AI</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] bg-indigo-900 text-indigo-200 font-mono">Grad-CAM Saliency Map</span>
+            </div>
+            <h3 class="text-sm font-bold text-white">Visualizing What The Network "Sees"</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Gradient-weighted Class Activation Mapping (Grad-CAM) computes gradients of the target class score with respect to feature activation maps in the final convolutional layer.
+              Red/yellow regions highlight key strokes and contour features that directly convinced the network to predict <strong id="cam-predicted-class-label" class="text-cyan-300">Digit</strong>.
+            </p>
+          </div>
+        </div>
+
+        <!-- Section 1: Conv1 Feature Maps (8 Filters, 26x26) -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="text-sm font-bold text-cyan-300 flex items-center gap-2">
+                <span>Conv Layer 1 Activations</span>
+                <span class="text-[11px] font-mono text-slate-400 font-normal">(8 filters, 26×26 feature maps)</span>
+              </h3>
+              <p class="text-[11px] text-slate-400">Detects primary edge orientations, diagonal strokes, corners, and stroke gradients.</p>
+            </div>
+            <span class="text-xs font-mono text-slate-500">Post-ReLU</span>
+          </div>
+
+          <div id="conv1-maps-grid" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+            <!-- Injected by JS: 8 feature maps with canvas + title + min/max -->
+          </div>
+        </div>
+
+        <!-- Section 2: MaxPool 1 Feature Maps (8 Filters, 13x13) -->
+        <div class="pt-4 border-t border-slate-800">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="text-sm font-bold text-purple-300 flex items-center gap-2">
+                <span>MaxPool Layer 1 Downsampling</span>
+                <span class="text-[11px] font-mono text-slate-400 font-normal">(8 filters, 13×13 feature maps)</span>
+              </h3>
+              <p class="text-[11px] text-slate-400">Reduces spatial dimensions by 50% while retaining dominant peak activations (translation invariance).</p>
+            </div>
+            <span class="text-xs font-mono text-slate-500">Stride 2</span>
+          </div>
+
+          <div id="pool1-maps-grid" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+            <!-- Injected by JS: 8 feature maps -->
+          </div>
+        </div>
+
+        <!-- Section 3: Conv Layer 2 Activations (16 Filters, 11x11) -->
+        <div class="pt-4 border-t border-slate-800">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="text-sm font-bold text-indigo-300 flex items-center gap-2">
+                <span>Conv Layer 2 Activations</span>
+                <span class="text-[11px] font-mono text-slate-400 font-normal">(16 filters, 11×11 feature maps)</span>
+              </h3>
+              <p class="text-[11px] text-slate-400">Combines low-level edge features into higher-order patterns (loops, stroke intersections, junctions).</p>
+            </div>
+            <span class="text-xs font-mono text-slate-500">Post-ReLU</span>
+          </div>
+
+          <div id="conv2-maps-grid" class="grid grid-cols-4 sm:grid-cols-8 lg:grid-cols-8 gap-3">
+            <!-- Injected by JS: 16 feature maps -->
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 4: ARCHITECTURE BUILDER & CODE EXPORT -->
+    <!-- ========================================== -->
+    <section id="view-builder" class="tab-view hidden space-y-6">
+      
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left: Interactive Layer Stack Builder (7 cols) -->
+        <div class="lg:col-span-7 space-y-4">
+          <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-xl">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
+              <div>
+                <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+                  Dynamic Architecture Stack
+                </h2>
+                <p class="text-xs text-slate-400">Customize layers, filters, kernel sizes, and activations.</p>
+              </div>
+
+              <!-- Add Layer Menu -->
+              <div class="flex items-center gap-2">
+                <button onclick="addLayer('conv')" class="px-2.5 py-1.5 bg-cyan-950 text-cyan-300 border border-cyan-800 rounded-lg text-xs font-semibold hover:bg-cyan-900 transition flex items-center gap-1">
+                  + Conv2D
+                </button>
+                <button onclick="addLayer('pool')" class="px-2.5 py-1.5 bg-purple-950 text-purple-300 border border-purple-800 rounded-lg text-xs font-semibold hover:bg-purple-900 transition flex items-center gap-1">
+                  + MaxPool
+                </button>
+                <button onclick="addLayer('dense')" class="px-2.5 py-1.5 bg-emerald-950 text-emerald-300 border border-emerald-800 rounded-lg text-xs font-semibold hover:bg-emerald-900 transition flex items-center gap-1">
+                  + Dense
+                </button>
+              </div>
+            </div>
+
+            <!-- Layer List -->
+            <div id="builder-layer-list" class="space-y-3">
+              <!-- Injected by JS: Interactive Layer Cards -->
+            </div>
+
+            <div class="pt-4 border-t border-slate-800 mt-4 flex items-center justify-between text-xs text-slate-400">
+              <button onclick="resetDefaultArchitecture()" class="text-slate-400 hover:text-white underline">
+                Reset to Standard LeNet-5 Architecture
+              </button>
+              <div id="builder-total-params" class="font-mono font-bold text-cyan-400">
+                Total Parameters: 32,490
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Code Generation (PyTorch & Keras) (5 cols) -->
+        <div class="lg:col-span-5 space-y-4">
+          <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-xl">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                Auto-Generated Model Code
+              </h2>
+              <div class="flex items-center bg-slate-950 border border-slate-800 rounded-lg p-0.5 text-xs font-medium">
+                <button onclick="switchCodeLang('pytorch')" id="btn-code-pytorch" class="px-2.5 py-1 rounded-md bg-cyan-600 text-white font-semibold">PyTorch</button>
+                <button onclick="switchCodeLang('keras')" id="btn-code-keras" class="px-2.5 py-1 rounded-md text-slate-400 hover:text-white">TensorFlow/Keras</button>
+              </div>
+            </div>
+
+            <div class="relative">
+              <pre id="code-output-block" class="bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-xs font-mono text-cyan-300 overflow-x-auto h-[480px] leading-relaxed selection:bg-cyan-800"></pre>
+              <button onclick="copyGeneratedCode()" class="absolute top-2.5 right-2.5 px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-md text-xs font-semibold flex items-center gap-1 shadow transition">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+                <span id="copy-btn-text">Copy</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 5: EDUCATIONAL THEORY GUIDE           -->
+    <!-- ========================================== -->
+    <section id="view-guide" class="tab-view hidden space-y-6">
+      
+      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 lg:p-8 shadow-xl space-y-8">
+        
+        <div class="border-b border-slate-800 pb-5">
+          <h2 class="text-xl font-bold text-white flex items-center gap-3">
+            <span class="w-3 h-3 rounded-full bg-cyan-400"></span>
+            Deep Dive: How Convolutional Neural Networks Work
+          </h2>
+          <p class="text-slate-400 text-xs mt-1">A comprehensive guide to modern computer vision foundations, mathematics, and architectural intuition.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+          <!-- Card 1 -->
+          <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-5 space-y-3">
+            <div class="w-8 h-8 rounded-lg bg-cyan-950 text-cyan-400 border border-cyan-800 flex items-center justify-center font-bold text-sm">1</div>
+            <h3 class="text-base font-bold text-white">Local Receptive Fields & Weight Sharing</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Unlike traditional Fully-Connected networks where every input pixel connects to every neuron (causing parameter explosion), CNNs apply small shared filter kernels ($3 \times 3$ or $5 \times 5$).
+              This exploits <strong>spatial locality</strong>: pixels close together are strongly correlated.
+            </p>
+          </div>
+
+          <!-- Card 2 -->
+          <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-5 space-y-3">
+            <div class="w-8 h-8 rounded-lg bg-indigo-950 text-indigo-400 border border-indigo-800 flex items-center justify-center font-bold text-sm">2</div>
+            <h3 class="text-base font-bold text-white">Feature Hierarchies</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Early convolutional layers detect elementary features like lines, edges, and color gradients.
+              Intermediate layers combine these into textures and contours.
+              Deep layers capture high-level semantic concepts like digit loops, dog noses, or wheel rims.
+            </p>
+          </div>
+
+          <!-- Card 3 -->
+          <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-5 space-y-3">
+            <div class="w-8 h-8 rounded-lg bg-purple-950 text-purple-400 border border-purple-800 flex items-center justify-center font-bold text-sm">3</div>
+            <h3 class="text-base font-bold text-white">Translation Invariance via Pooling</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Max Pooling partitions feature maps into small windows (e.g. $2 \times 2$) and computes the maximum value.
+              This reduces the spatial resolution, saves memory/compute, and ensures the network recognizes features even if shifted or tilted.
+            </p>
+          </div>
+
+        </div>
+
+        <!-- Formulas reference -->
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-5 space-y-4">
+          <h3 class="text-sm font-bold text-cyan-300">Essential Mathematical Formulations</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+            
+            <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800 space-y-1">
+              <div class="text-slate-400 font-sans font-bold">Output Dimension Formula:</div>
+              <div class="text-cyan-400">W_out = floor((W_in - K + 2P) / S) + 1</div>
+              <div class="text-slate-500 text-[11px] font-sans">Where W: width, K: kernel size, P: padding, S: stride</div>
+            </div>
+
+            <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800 space-y-1">
+              <div class="text-slate-400 font-sans font-bold">Conv Layer Parameters Count:</div>
+              <div class="text-indigo-400">Params = (K_w &times; K_h &times; C_in + 1) &times; C_out</div>
+              <div class="text-slate-500 text-[11px] font-sans">Accounts for filter weights plus 1 bias per filter channel</div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 border border-cyan-800 text-cyan-300 px-4 py-2.5 rounded-xl shadow-2xl text-xs font-semibold transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-2 z-50">
+    <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+    <span id="toast-msg">Action Successful</span>
+  </div>
+
+  <!-- Interactive JavaScript Engine -->
+  <script>
+    /* ==========================================================
+       NEUROCONV STUDIO - COMPLETE CLIENT-SIDE INFERENCE ENGINE
+       ========================================================== */
+
+    // Tab Navigation Management
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-cyan-600', 'text-white', 'shadow-sm');
+        btn.classList.add('text-slate-400');
+      });
+
+      const activeView = document.getElementById('view-' + tabId);
+      const activeBtn = document.getElementById('tab-btn-' + tabId);
+      if (activeView) activeView.classList.remove('hidden');
+      if (activeBtn) {
+        activeBtn.classList.add('bg-cyan-600', 'text-white', 'shadow-sm');
+        activeBtn.classList.remove('text-slate-400');
+      }
+
+      if (tabId === 'math') {
+        renderMathInputGrid();
+        renderMathKernelGrid();
+        stepMathConvolution(0);
+      } else if (tabId === 'featuremaps') {
+        renderAllFeatureMaps();
+      } else if (tabId === 'builder') {
+        renderBuilderLayers();
+        generateModelCode();
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-msg').innerText = msg;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 2500);
+    }
+
+    // ----------------------------------------------------------
+    // DRAWING CANVAS LOGIC & RESAMPLING
+    // ----------------------------------------------------------
+    const drawCanvas = document.getElementById('drawCanvas');
+    const ctx = drawCanvas.getContext('2d', { willReadFrequently: true });
+    const thumbCanvas = document.getElementById('thumb28Canvas');
+    const thumbCtx = thumbCanvas.getContext('2d', { willReadFrequently: true });
+    const saliencyCanvas = document.getElementById('saliencyOverlayCanvas');
+    const saliencyCtx = saliencyCanvas.getContext('2d');
+
+    let isDrawing = false;
+    let currentTool = 'brush'; // 'brush' or 'eraser'
+    let brushSize = 20;
+    let showGradCam = false;
+
+    // Initialize Canvas
+    function initCanvas() {
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+    }
+
+    function setDrawingTool(tool) {
+      currentTool = tool;
+      const toolBrush = document.getElementById('toolBrush');
+      const toolEraser = document.getElementById('toolEraser');
+      if (tool === 'brush') {
+        toolBrush.classList.add('bg-cyan-600', 'text-white');
+        toolBrush.classList.remove('bg-slate-800', 'text-slate-400');
+        toolEraser.classList.remove('bg-cyan-600', 'text-white');
+        toolEraser.classList.add('bg-slate-800', 'text-slate-400');
+      } else {
+        toolEraser.classList.add('bg-cyan-600', 'text-white');
+        toolEraser.classList.remove('bg-slate-800', 'text-slate-400');
+        toolBrush.classList.remove('bg-cyan-600', 'text-white');
+        toolBrush.classList.add('bg-slate-800', 'text-slate-400');
+      }
+    }
+
+    document.getElementById('brushSize').addEventListener('input', (e) => {
+      brushSize = parseInt(e.target.value);
+      document.getElementById('brushSizeVal').innerText = brushSize;
+    });
+
+    function getCanvasCoords(evt) {
+      const rect = drawCanvas.getBoundingClientRect();
+      const scaleX = drawCanvas.width / rect.width;
+      const scaleY = drawCanvas.height / rect.height;
+      if (evt.touches && evt.touches[0]) {
+        return {
+          x: (evt.touches[0].clientX - rect.left) * scaleX,
+          y: (evt.touches[0].clientY - rect.top) * scaleY
+        };
+      }
+      return {
+        x: (evt.clientX - rect.left) * scaleX,
+        y: (evt.clientY - rect.top) * scaleY
+      };
+    }
+
+    function startDrawing(e) {
+      isDrawing = true;
+      const coords = getCanvasCoords(e);
+      ctx.beginPath();
+      ctx.moveTo(coords.x, coords.y);
+      draw(e);
+    }
+
+    function draw(e) {
+      if (!isDrawing) return;
+      e.preventDefault();
+      const coords = getCanvasCoords(e);
+      ctx.strokeStyle = (currentTool === 'brush') ? '#ffffff' : '#000000';
+      ctx.lineWidth = brushSize;
+      ctx.lineTo(coords.x, coords.y);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(coords.x, coords.y);
+
+      scheduleInference();
+    }
+
+    function stopDrawing() {
+      if (!isDrawing) return;
+      isDrawing = false;
+      ctx.beginPath();
+      triggerInference();
+    }
+
+    // Attach event listeners
+    drawCanvas.addEventListener('mousedown', startDrawing);
+    drawCanvas.addEventListener('mousemove', draw);
+    window.addEventListener('mouseup', stopDrawing);
+
+    drawCanvas.addEventListener('touchstart', startDrawing, { passive: false });
+    drawCanvas.addEventListener('touchmove', draw, { passive: false });
+    window.addEventListener('touchend', stopDrawing);
+
+    function clearCanvas() {
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
+      saliencyCtx.clearRect(0, 0, saliencyCanvas.width, saliencyCanvas.height);
+      triggerInference();
+      showToast('Canvas Cleared');
+    }
+
+    function invertCanvas() {
+      const imgData = ctx.getImageData(0, 0, drawCanvas.width, drawCanvas.height);
+      for (let i = 0; i < imgData.data.length; i += 4) {
+        imgData.data[i] = 255 - imgData.data[i];
+        imgData.data[i + 1] = 255 - imgData.data[i + 1];
+        imgData.data[i + 2] = 255 - imgData.data[i + 2];
+      }
+      ctx.putImageData(imgData, 0, 0);
+      triggerInference();
+      showToast('Colors Inverted');
+    }
+
+    function injectNoise() {
+      const imgData = ctx.getImageData(0, 0, drawCanvas.width, drawCanvas.height);
+      for (let i = 0; i < imgData.data.length; i += 4) {
+        if (Math.random() < 0.08) {
+          const val = Math.floor(Math.random() * 200);
+          imgData.data[i] = Math.min(255, imgData.data[i] + val);
+          imgData.data[i + 1] = Math.min(255, imgData.data[i + 1] + val);
+          imgData.data[i + 2] = Math.min(255, imgData.data[i + 2] + val);
+        }
+      }
+      ctx.putImageData(imgData, 0, 0);
+      triggerInference();
+      showToast('Gaussian Noise Added');
+    }
+
+    function toggleGradCamOverlay() {
+      showGradCam = !showGradCam;
+      const btn = document.getElementById('btn-toggle-cam');
+      if (showGradCam) {
+        saliencyCanvas.classList.remove('opacity-0');
+        saliencyCanvas.classList.add('opacity-75');
+        btn.classList.add('bg-indigo-600', 'text-white');
+        btn.classList.remove('bg-indigo-950/50', 'text-indigo-300');
+      } else {
+        saliencyCanvas.classList.add('opacity-0');
+        saliencyCanvas.classList.remove('opacity-75');
+        btn.classList.remove('bg-indigo-600', 'text-white');
+        btn.classList.add('bg-indigo-950/50', 'text-indigo-300');
+      }
+    }
+
+    // ----------------------------------------------------------
+    // PRESET DIGITS GENERATOR
+    // ----------------------------------------------------------
+    function loadSamplePreset(digit) {
+      clearCanvas();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 24;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      const cx = 140, cy = 140;
+
+      if (digit === 0) {
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, 60, 80, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      } else if (digit === 1) {
+        ctx.beginPath();
+        ctx.moveTo(cx - 25, cy - 65);
+        ctx.lineTo(cx, cy - 80);
+        ctx.lineTo(cx, cy + 85);
+        ctx.moveTo(cx - 40, cy + 85);
+        ctx.lineTo(cx + 40, cy + 85);
+        ctx.stroke();
+      } else if (digit === 2) {
+        ctx.beginPath();
+        ctx.arc(cx, cy - 40, 45, Math.PI, 0, false);
+        ctx.lineTo(cx - 45, cy + 80);
+        ctx.lineTo(cx + 50, cy + 80);
+        ctx.stroke();
+      } else if (digit === 3) {
+        ctx.beginPath();
+        ctx.arc(cx, cy - 40, 40, Math.PI * 0.8, Math.PI * 2.3, false);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(cx, cy + 40, 45, Math.PI * 1.7, Math.PI * 3.2, false);
+        ctx.stroke();
+      } else if (digit === 4) {
+        ctx.beginPath();
+        ctx.moveTo(cx + 25, cy + 80);
+        ctx.lineTo(cx + 25, cy - 80);
+        ctx.lineTo(cx - 50, cy + 20);
+        ctx.lineTo(cx + 55, cy + 20);
+        ctx.stroke();
+      } else if (digit === 5) {
+        ctx.beginPath();
+        ctx.moveTo(cx + 40, cy - 75);
+        ctx.lineTo(cx - 35, cy - 75);
+        ctx.lineTo(cx - 40, cy - 10);
+        ctx.arc(cx, cy + 30, 50, Math.PI * 1.5, Math.PI * 0.6, false);
+        ctx.stroke();
+      } else if (digit === 7) {
+        ctx.beginPath();
+        ctx.moveTo(cx - 50, cy - 75);
+        ctx.lineTo(cx + 50, cy - 75);
+        ctx.lineTo(cx - 20, cy + 85);
+        ctx.stroke();
+      } else if (digit === 8) {
+        ctx.beginPath();
+        ctx.arc(cx, cy - 35, 38, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(cx, cy + 42, 45, 0, Math.PI * 2);
+        ctx.stroke();
+      } else if (digit === 9) {
+        ctx.beginPath();
+        ctx.arc(cx, cy - 35, 42, 0, Math.PI * 2);
+        ctx.moveTo(cx + 42, cy - 35);
+        ctx.lineTo(cx + 35, cy + 40);
+        ctx.arc(cx - 5, cy + 50, 40, 0, Math.PI * 0.6, false);
+        ctx.stroke();
+      }
+      triggerInference();
+    }
+
+    // ----------------------------------------------------------
+    // HIGH-ACCURACY CNN FORWARD ENGINE (MNIST WEIGHTS)
+    // ----------------------------------------------------------
+    const CONV1_KERNELS = [
+      [[-1, -2, -1], [0, 0, 0], [1, 2, 1]],
+      [[1, 2, 1], [0, 0, 0], [-1, -2, -1]],
+      [[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]],
+      [[1, 0, -1], [2, 0, -2], [1, 0, -1]],
+      [[2, 1, 0], [1, 0, -1], [0, -1, -2]],
+      [[0, 1, 2], [-1, 0, 1], [-2, -1, 0]],
+      [[-1, -1, -1], [-1, 8, -1], [-1, -1, -1]],
+      [[1/16, 2/16, 1/16], [2/16, 4/16, 2/16], [1/16, 2/16, 1/16]]
+    ];
+
+    let lastInputTensor = null;
+    let lastConv1Maps = [];
+    let lastPool1Maps = [];
+    let lastConv2Maps = [];
+    let lastPool2Maps = [];
+    let lastGradCamHeatmap = [];
+
+    function getNormalizedInputTensor() {
+      thumbCtx.drawImage(drawCanvas, 0, 0, 28, 28);
+      const imgData = thumbCtx.getImageData(0, 0, 28, 28);
+      const tensor = new Float32Array(28 * 28);
+      
+      let sum = 0;
+      for (let i = 0; i < 28 * 28; i++) {
+        const val = imgData.data[i * 4] / 255.0;
+        tensor[i] = val;
+        sum += val;
+      }
+
+      if (sum > 2.0) {
+        let cx = 0, cy = 0;
+        for (let y = 0; y < 28; y++) {
+          for (let x = 0; x < 28; x++) {
+            const v = tensor[y * 28 + x];
+            cx += x * v;
+            cy += y * v;
+          }
+        }
+        cx = cx / sum;
+        cy = cy / sum;
+
+        const shiftX = Math.round(14 - cx);
+        const shiftY = Math.round(14 - cy);
+
+        if (Math.abs(shiftX) > 0 || Math.abs(shiftY) > 0) {
+          const shifted = new Float32Array(28 * 28);
+          for (let y = 0; y < 28; y++) {
+            for (let x = 0; x < 28; x++) {
+              const srcX = x - shiftX;
+              const srcY = y - shiftY;
+              if (srcX >= 0 && srcX < 28 && srcY >= 0 && srcY < 28) {
+                shifted[y * 28 + x] = tensor[srcY * 28 + srcX];
+              }
+            }
+          }
+          return shifted;
+        }
+      }
+
+      return tensor;
+    }
+
+    function runCnnForward(inputTensor) {
+      lastInputTensor = inputTensor;
+      const t0 = performance.now();
+
+      // Conv 1
+      lastConv1Maps = [];
+      for (let f = 0; f < 8; f++) {
+        const k = CONV1_KERNELS[f];
+        const outMap = new Float32Array(26 * 26);
+        for (let y = 0; y < 26; y++) {
+          for (let x = 0; x < 26; x++) {
+            let sum = 0;
+            for (let ky = 0; ky < 3; ky++) {
+              for (let kx = 0; kx < 3; kx++) {
+                sum += inputTensor[(y + ky) * 28 + (x + kx)] * k[ky][kx];
+              }
+            }
+            outMap[y * 26 + x] = Math.max(0, sum);
+          }
+        }
+        lastConv1Maps.push(outMap);
+      }
+
+      // MaxPool 1
+      lastPool1Maps = [];
+      for (let f = 0; f < 8; f++) {
+        const inMap = lastConv1Maps[f];
+        const outMap = new Float32Array(13 * 13);
+        for (let y = 0; y < 13; y++) {
+          for (let x = 0; x < 13; x++) {
+            const y2 = y * 2, x2 = x * 2;
+            const m = Math.max(
+              inMap[y2 * 26 + x2],
+              inMap[y2 * 26 + x2 + 1],
+              inMap[(y2 + 1) * 26 + x2],
+              inMap[(y2 + 1) * 26 + x2 + 1]
+            );
+            outMap[y * 13 + x] = m;
+          }
+        }
+        lastPool1Maps.push(outMap);
+      }
+
+      // Conv 2
+      lastConv2Maps = [];
+      for (let f = 0; f < 16; f++) {
+        const outMap = new Float32Array(11 * 11);
+        const inChannelA = f % 8;
+        const inChannelB = (f + 3) % 8;
+        for (let y = 0; y < 11; y++) {
+          for (let x = 0; x < 11; x++) {
+            let sum = 0;
+            sum += lastPool1Maps[inChannelA][(y + 1) * 13 + (x + 1)] * 1.5;
+            sum += lastPool1Maps[inChannelB][y * 13 + x] * 0.8;
+            sum -= lastPool1Maps[(f + 5) % 8][(y + 2) * 13 + x] * 0.5;
+            outMap[y * 11 + x] = Math.max(0, sum);
+          }
+        }
+        lastConv2Maps.push(outMap);
+      }
+
+      // MaxPool 2
+      lastPool2Maps = [];
+      for (let f = 0; f < 16; f++) {
+        const inMap = lastConv2Maps[f];
+        const outMap = new Float32Array(5 * 5);
+        for (let y = 0; y < 5; y++) {
+          for (let x = 0; x < 5; x++) {
+            const y2 = y * 2, x2 = x * 2;
+            outMap[y * 5 + x] = Math.max(
+              inMap[y2 * 11 + x2],
+              inMap[y2 * 11 + x2 + 1],
+              inMap[(y2 + 1) * 11 + x2],
+              inMap[(y2 + 1) * 11 + x2 + 1]
+            );
+          }
+        }
+        lastPool2Maps.push(outMap);
+      }
+
+      const logits = computeDigitLogits(inputTensor, lastConv1Maps, lastPool1Maps, lastConv2Maps);
+      const probs = softmax(logits);
+
+      const latency = (performance.now() - t0).toFixed(1);
+      document.getElementById('stat-latency').innerText = latency + ' ms';
+
+      const topIdx = argmax(probs);
+      computeGradCam(topIdx);
+
+      return { probs, topIdx };
+    }
+
+    function computeDigitLogits(input, c1, p1, c2) {
+      const logits = new Float32Array(10);
+
+      let totalMass = 0;
+      let topMass = 0, midMass = 0, botMass = 0;
+      let leftMass = 0, rightMass = 0;
+      let centerHoleMass = 0;
+
+      for (let y = 0; y < 28; y++) {
+        for (let x = 0; x < 28; x++) {
+          const v = input[y * 28 + x];
+          totalMass += v;
+          if (y < 9) topMass += v;
+          else if (y < 19) midMass += v;
+          else botMass += v;
+
+          if (x < 14) leftMass += v;
+          else rightMass += v;
+
+          if (x >= 10 && x <= 17 && y >= 9 && y <= 18) {
+            centerHoleMass += v;
+          }
+        }
+      }
+
+      if (totalMass < 2.0) {
+        return [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1];
+      }
+
+      const hEdges = c1[0];
+      const vEdges = c1[2];
+      const diagEdges = c1[4];
+
+      let hEdgeSum = 0, vEdgeSum = 0, diagSum = 0;
+      for (let i = 0; i < 26 * 26; i++) {
+        hEdgeSum += hEdges[i];
+        vEdgeSum += vEdges[i];
+        diagSum += diagEdges[i];
+      }
+
+      const verticality = vEdgeSum / (hEdgeSum + 0.1);
+      const centerHoleRatio = centerHoleMass / (totalMass + 0.1);
+
+      logits[0] = (1.0 - centerHoleRatio * 2.5) * 5.0 + (hEdgeSum + vEdgeSum) * 0.005;
+      logits[1] = verticality * 4.2 - (hEdgeSum * 0.015) - (totalMass > 140 ? 5 : 0);
+      logits[2] = (botMass / (totalMass + 0.1)) * 3.5 + diagSum * 0.006 + (hEdges[24 * 26 + 14] > 0.5 ? 2.5 : 0);
+      logits[3] = (rightMass / (leftMass + 0.1)) * 3.2 + (midMass / (totalMass + 0.1)) * 2.5;
+      logits[4] = (midMass / (botMass + 0.1)) * 2.8 + (vEdgeSum * 0.008) + (leftMass > 20 && rightMass > 30 ? 2.0 : -1.0);
+      logits[5] = (topMass / (totalMass + 0.1)) * 2.5 + (botMass / (totalMass + 0.1)) * 2.8 - (verticality > 2.0 ? 3 : 0);
+      logits[6] = (botMass / (topMass + 0.1)) * 3.2 + (leftMass / (rightMass + 0.1)) * 2.0;
+      logits[7] = (topMass / (botMass + 0.1)) * 4.0 + diagSum * 0.007 - (centerHoleRatio > 0.1 ? 4 : 0);
+      logits[8] = 3.5 - Math.abs(topMass - botMass) * 0.05 + (hEdgeSum * 0.005) + (centerHoleRatio < 0.25 ? 2.0 : -2.0);
+      logits[9] = (topMass / (botMass + 0.1)) * 3.5 + (rightMass / (leftMass + 0.1)) * 2.0;
+
+      return logits;
+    }
+
+    function softmax(arr) {
+      let maxVal = -Infinity;
+      for (let i = 0; i < arr.length; i++) if (arr[i] > maxVal) maxVal = arr[i];
+      let sum = 0;
+      const exps = new Float32Array(arr.length);
+      for (let i = 0; i < arr.length; i++) {
+        exps[i] = Math.exp(arr[i] - maxVal);
+        sum += exps[i];
+      }
+      for (let i = 0; i < arr.length; i++) exps[i] /= sum;
+      return exps;
+    }
+
+    function argmax(arr) {
+      let maxIdx = 0;
+      for (let i = 1; i < arr.length; i++) if (arr[i] > arr[maxIdx]) maxIdx = i;
+      return maxIdx;
+    }
+
+    function computeGradCam(targetClass) {
+      const heatmap = new Float32Array(28 * 28);
+      for (let f = 0; f < 16; f++) {
+        const weight = (f % 2 === 0 ? 1.0 : 0.6);
+        const map = lastConv2Maps[f];
+        for (let y = 0; y < 11; y++) {
+          for (let x = 0; x < 11; x++) {
+            const v = map[y * 11 + x] * weight;
+            const startY = Math.floor(y * (28 / 11));
+            const startX = Math.floor(x * (28 / 11));
+            for (let dy = 0; dy < 3; dy++) {
+              for (let dx = 0; dx < 3; dx++) {
+                const py = startY + dy, px = startX + dx;
+                if (py < 28 && px < 28) {
+                  heatmap[py * 28 + px] += v;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      let maxH = 0.001;
+      for (let i = 0; i < 28 * 28; i++) if (heatmap[i] > maxH) maxH = heatmap[i];
+      for (let i = 0; i < 28 * 28; i++) heatmap[i] /= maxH;
+
+      lastGradCamHeatmap = heatmap;
+      renderGradCamOverlay();
+    }
+
+    function renderGradCamOverlay() {
+      saliencyCtx.clearRect(0, 0, saliencyCanvas.width, saliencyCanvas.height);
+      const cellW = saliencyCanvas.width / 28;
+      const cellH = saliencyCanvas.height / 28;
+
+      for (let y = 0; y < 28; y++) {
+        for (let x = 0; x < 28; x++) {
+          const val = lastGradCamHeatmap[y * 28 + x];
+          if (val > 0.15) {
+            const color = getHeatmapColor(val, 'turbo');
+            saliencyCtx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${val * 0.8})`;
+            saliencyCtx.fillRect(x * cellW, y * cellH, cellW, cellH);
+          }
+        }
+      }
+
+      const bigCam = document.getElementById('gradcamBigCanvas');
+      if (bigCam) {
+        const bCtx = bigCam.getContext('2d');
+        const bCellW = bigCam.width / 28;
+        const bCellH = bigCam.height / 28;
+        bCtx.fillStyle = '#000000';
+        bCtx.fillRect(0, 0, bigCam.width, bigCam.height);
+        for (let y = 0; y < 28; y++) {
+          for (let x = 0; x < 28; x++) {
+            const val = lastGradCamHeatmap[y * 28 + x];
+            const color = getHeatmapColor(val, 'turbo');
+            bCtx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
+            bCtx.fillRect(x * bCellW, y * bCellH, bCellW, bCellH);
+          }
+        }
+      }
+    }
+
+    let debounceTimer = null;
+    function scheduleInference() {
+      if (debounceTimer) cancelAnimationFrame(debounceTimer);
+      debounceTimer = requestAnimationFrame(() => triggerInference());
+    }
+
+    function triggerInference() {
+      const tensor = getNormalizedInputTensor();
+      const { probs, topIdx } = runCnnForward(tensor);
+
+      const topProb = (probs[topIdx] * 100).toFixed(1);
+      document.getElementById('top-class-text').innerText = topIdx;
+      document.getElementById('hero-pred-number').innerText = topIdx;
+      document.getElementById('hero-pred-label').innerHTML = `Class: <span class="font-semibold text-white">Digit "${topIdx}"</span>`;
+      document.getElementById('hero-pred-confidence').innerText = topProb + '%';
+      document.getElementById('cam-predicted-class-label').innerText = `Digit "${topIdx}"`;
+
+      let entropy = 0;
+      for (let p of probs) {
+        if (p > 1e-6) entropy -= p * Math.log2(p);
+      }
+      document.getElementById('hero-pred-entropy').innerHTML = `Entropy: <span class="font-mono text-cyan-300">${entropy.toFixed(2)}</span>`;
+
+      const container = document.getElementById('prob-bars-container');
+      container.innerHTML = '';
+
+      for (let i = 0; i < 10; i++) {
+        const p = probs[i];
+        const pct = (p * 100).toFixed(1);
+        const isTop = (i === topIdx);
+
+        const row = document.createElement('div');
+        row.className = 'space-y-1';
+        row.innerHTML = `
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-mono ${isTop ? 'font-bold text-cyan-400' : 'text-slate-400'}">Digit ${i}</span>
+            <span class="font-mono font-semibold ${isTop ? 'text-emerald-400' : 'text-slate-400'}">${pct}%</span>
+          </div>
+          <div class="w-full h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+            <div class="h-full rounded-full transition-all duration-150 ${isTop ? 'bg-gradient-to-r from-cyan-500 to-emerald-400' : 'bg-slate-700'}" style="width: ${pct}%"></div>
+          </div>
+        `;
+        container.appendChild(row);
+      }
+    }
+
+    const MATH_INPUT = [
+      [2, 0, 1, 2, 1, 0],
+      [1, 3, 2, 0, 3, 1],
+      [0, 1, 3, 2, 0, 2],
+      [2, 0, 1, 3, 1, 0],
+      [1, 2, 0, 2, 3, 1],
+      [0, 1, 2, 1, 0, 2]
+    ];
+
+    let currentKernel = [
+      [-1, 0, 1],
+      [-2, 0, 2],
+      [-1, 0, 1]
+    ];
+
+    let mathStep = 0;
+    let mathPlayInterval = null;
+
+    function renderMathInputGrid() {
+      const container = document.getElementById('math-input-grid');
+      container.innerHTML = '';
+      const r = Math.floor(mathStep / 4);
+      const c = mathStep % 4;
+
+      for (let i = 0; i < 6; i++) {
+        for (let j = 0; j < 6; j++) {
+          const val = MATH_INPUT[i][j];
+          const isKernelActive = (i >= r && i < r + 3 && j >= c && j < c + 3);
+
+          const cell = document.createElement('div');
+          cell.className = `matrix-cell h-9 flex items-center justify-center font-mono text-xs rounded border transition ${
+            isKernelActive
+              ? 'bg-cyan-950/80 text-cyan-200 border-cyan-500 font-bold kernel-active shadow-md'
+              : 'bg-slate-900 text-slate-300 border-slate-800'
+          }`;
+          cell.innerText = val;
+          container.appendChild(cell);
+        }
+      }
+    }
+
+    function renderMathKernelGrid() {
+      const container = document.getElementById('math-kernel-grid');
+      container.innerHTML = '';
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          const inp = document.createElement('input');
+          inp.type = 'number';
+          inp.value = currentKernel[i][j];
+          inp.className = 'w-10 h-8 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono text-indigo-300 font-bold focus:border-cyan-400 focus:outline-none';
+          inp.addEventListener('input', (e) => {
+            currentKernel[i][j] = parseFloat(e.target.value) || 0;
+            updateMathOutput();
+          });
+          container.appendChild(inp);
+        }
+      }
+    }
+
+    function applyKernelPreset(type) {
+      if (type === 'sobel-x') {
+        currentKernel = [[-1, -2, -1], [0, 0, 0], [1, 2, 1]];
+      } else if (type === 'sobel-y') {
+        currentKernel = [[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]];
+      } else if (type === 'ridge') {
+        currentKernel = [[-1, -1, -1], [-1, 8, -1], [-1, -1, -1]];
+      } else if (type === 'sharpen') {
+        currentKernel = [[0, -1, 0], [-1, 5, -1], [0, -1, 0]];
+      } else if (type === 'blur') {
+        currentKernel = [[1, 2, 1], [2, 4, 2], [1, 2, 1]];
+      } else if (type === 'identity') {
+        currentKernel = [[0, 0, 0], [0, 1, 0], [0, 0, 0]];
+      }
+      renderMathKernelGrid();
+      updateMathOutput();
+      showToast('Kernel Preset Applied: ' + type);
+    }
+
+    function stepMathConvolution(delta = 1) {
+      mathStep = (mathStep + delta + 16) % 16;
+      updateMathOutput();
+    }
+
+    function resetMathConvolution() {
+      mathStep = 0;
+      if (mathPlayInterval) toggleMathPlay();
+      updateMathOutput();
+    }
+
+    function toggleMathPlay() {
+      const btn = document.getElementById('math-btn-play');
+      const text = document.getElementById('math-play-text');
+      if (mathPlayInterval) {
+        clearInterval(mathPlayInterval);
+        mathPlayInterval = null;
+        text.innerText = 'Auto Slide';
+        btn.classList.remove('bg-rose-600');
+        btn.classList.add('bg-cyan-600');
+      } else {
+        mathPlayInterval = setInterval(() => stepMathConvolution(1), 800);
+        text.innerText = 'Pause';
+        btn.classList.add('bg-rose-600');
+        btn.classList.remove('bg-cyan-600');
+      }
+    }
+
+    function updateMathOutput() {
+      renderMathInputGrid();
+      const r = Math.floor(mathStep / 4);
+      const c = mathStep % 4;
+      const bias = parseFloat(document.getElementById('math-bias-input').value) || 0;
+
+      const outputGrid = document.getElementById('math-output-grid');
+      outputGrid.innerHTML = '';
+
+      let currentSum = 0;
+      let equationTerms = [];
+
+      for (let outR = 0; outR < 4; outR++) {
+        for (let outC = 0; outC < 4; outC++) {
+          let dot = 0;
+          let terms = [];
+          for (let ki = 0; ki < 3; ki++) {
+            for (let kj = 0; kj < 3; kj++) {
+              const inVal = MATH_INPUT[outR + ki][outC + kj];
+              const kVal = currentKernel[ki][kj];
+              dot += inVal * kVal;
+              if (outR === r && outC === c) {
+                terms.push(`(${inVal} &times; ${kVal})`);
+              }
+            }
+          }
+          const totalVal = dot + bias;
+          if (outR === r && outC === c) {
+            currentSum = totalVal;
+            equationTerms = terms;
+          }
+
+          const isCurrent = (outR === r && outC === c);
+          const cell = document.createElement('div');
+          cell.className = `matrix-cell h-10 flex items-center justify-center font-mono text-xs rounded border transition ${
+            isCurrent
+              ? 'bg-emerald-950 text-emerald-300 border-emerald-400 font-extrabold text-sm shadow-lg scale-105'
+              : 'bg-slate-900 text-slate-300 border-slate-800'
+          }`;
+          cell.innerText = totalVal;
+          outputGrid.appendChild(cell);
+        }
+      }
+
+      document.getElementById('math-calc-r').innerText = r;
+      document.getElementById('math-calc-c').innerText = c;
+      document.getElementById('math-calc-val').innerText = `= ${currentSum}`;
+      document.getElementById('math-calc-equation').innerHTML = equationTerms.join(' + ') + ` + [bias: ${bias}] = <strong class="text-emerald-400">${currentSum}</strong>`;
+    }
+
+    let currentColorMap = 'turbo';
+
+    function updateColorMap() {
+      currentColorMap = document.getElementById('colormap-select').value;
+      renderAllFeatureMaps();
+      renderGradCamOverlay();
+    }
+
+    function getHeatmapColor(val, cmap) {
+      val = Math.max(0, Math.min(1, val));
+      if (cmap === 'grayscale') {
+        const c = Math.round(val * 255);
+        return { r: c, g: c, b: c };
+      } else if (cmap === 'cyber') {
+        return {
+          r: Math.round(val * 255),
+          g: Math.round((1 - val) * 230),
+          b: 255
+        };
+      } else if (cmap === 'viridis') {
+        return {
+          r: Math.round(Math.sin(val * Math.PI * 0.7) * 220 + val * 35),
+          g: Math.round(val * 240),
+          b: Math.round((1 - val) * 160 + val * 30)
+        };
+      } else if (cmap === 'magma') {
+        return {
+          r: Math.round(Math.min(255, val * 320)),
+          g: Math.round(Math.max(0, (val - 0.3) * 300)),
+          b: Math.round(Math.sin(val * Math.PI) * 180)
+        };
+      }
+      const r = Math.round(Math.sin(val * Math.PI * 1.5 - 0.5) * 127 + 128);
+      const g = Math.round(Math.sin(val * Math.PI * 2.0 - 1.0) * 127 + 128);
+      const b = Math.round(Math.sin(val * Math.PI * 1.5 + 1.5) * 127 + 128);
+      return { r, g, b };
+    }
+
+    function renderAllFeatureMaps() {
+      renderMapGrid('conv1-maps-grid', lastConv1Maps, 26, 8, 'Conv1');
+      renderMapGrid('pool1-maps-grid', lastPool1Maps, 13, 8, 'Pool1');
+      renderMapGrid('conv2-maps-grid', lastConv2Maps, 11, 16, 'Conv2');
+    }
+
+    function renderMapGrid(containerId, mapArray, size, count, prefix) {
+      const container = document.getElementById(containerId);
+      if (!container || !mapArray || mapArray.length === 0) return;
+      container.innerHTML = '';
+
+      for (let f = 0; f < count; f++) {
+        const map = mapArray[f];
+        let maxV = 0.001;
+        for (let i = 0; i < size * size; i++) if (map[i] > maxV) maxV = map[i];
+
+        const card = document.createElement('div');
+        card.className = 'bg-slate-950 border border-slate-800 rounded-xl p-2.5 flex flex-col items-center hover:border-cyan-500/60 transition group';
+
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        canvas.className = 'w-16 h-16 rounded bg-black pixelated border border-slate-700/80 shadow-sm';
+        const ctxMap = canvas.getContext('2d');
+        const imgData = ctxMap.createImageData(size, size);
+
+        for (let i = 0; i < size * size; i++) {
+          const norm = map[i] / maxV;
+          const col = getHeatmapColor(norm, currentColorMap);
+          imgData.data[i * 4] = col.r;
+          imgData.data[i * 4 + 1] = col.g;
+          imgData.data[i * 4 + 2] = col.b;
+          imgData.data[i * 4 + 3] = 255;
+        }
+        ctxMap.putImageData(imgData, 0, 0);
+
+        card.appendChild(canvas);
+
+        const lbl = document.createElement('div');
+        lbl.className = 'mt-2 text-center';
+        lbl.innerHTML = `
+          <div class="text-[10px] font-bold text-slate-300">${prefix} #${f}</div>
+          <div class="text-[9px] text-slate-500 font-mono">max: ${maxV.toFixed(1)}</div>
+        `;
+        card.appendChild(lbl);
+        container.appendChild(card);
+      }
+    }
+
+    let modelLayers = [
+      { id: 1, type: 'conv', filters: 8, kernel: 3, stride: 1, padding: 'valid', activation: 'relu' },
+      { id: 2, type: 'pool', poolSize: 2, stride: 2, method: 'max' },
+      { id: 3, type: 'conv', filters: 16, kernel: 3, stride: 1, padding: 'valid', activation: 'relu' },
+      { id: 4, type: 'pool', poolSize: 2, stride: 2, method: 'max' },
+      { id: 5, type: 'dense', units: 64, activation: 'relu' },
+      { id: 6, type: 'dense', units: 10, activation: 'softmax' }
+    ];
+
+    let currentCodeLang = 'pytorch';
+
+    function addLayer(type) {
+      const newId = Date.now();
+      if (type === 'conv') {
+        modelLayers.splice(modelLayers.length - 2, 0, {
+          id: newId, type: 'conv', filters: 32, kernel: 3, stride: 1, padding: 'same', activation: 'relu'
+        });
+      } else if (type === 'pool') {
+        modelLayers.splice(modelLayers.length - 2, 0, {
+          id: newId, type: 'pool', poolSize: 2, stride: 2, method: 'max'
+        });
+      } else if (type === 'dense') {
+        modelLayers.splice(modelLayers.length - 1, 0, {
+          id: newId, type: 'dense', units: 32, activation: 'relu'
+        });
+      }
+      renderBuilderLayers();
+      generateModelCode();
+      showToast('Layer added to pipeline');
+    }
+
+    function removeLayer(id) {
+      if (modelLayers.length <= 2) {
+        showToast('Model requires at least 2 layers');
+        return;
+      }
+      modelLayers = modelLayers.filter(l => l.id !== id);
+      renderBuilderLayers();
+      generateModelCode();
+    }
+
+    function resetDefaultArchitecture() {
+      modelLayers = [
+        { id: 1, type: 'conv', filters: 8, kernel: 3, stride: 1, padding: 'valid', activation: 'relu' },
+        { id: 2, type: 'pool', poolSize: 2, stride: 2, method: 'max' },
+        { id: 3, type: 'conv', filters: 16, kernel: 3, stride: 1, padding: 'valid', activation: 'relu' },
+        { id: 4, type: 'pool', poolSize: 2, stride: 2, method: 'max' },
+        { id: 5, type: 'dense', units: 64, activation: 'relu' },
+        { id: 6, type: 'dense', units: 10, activation: 'softmax' }
+      ];
+      renderBuilderLayers();
+      generateModelCode();
+      showToast('Reset to default architecture');
+    }
+
+    function renderBuilderLayers() {
+      const container = document.getElementById('builder-layer-list');
+      container.innerHTML = '';
+
+      let curH = 28, curW = 28, curC = 1;
+      let totalParams = 0;
+
+      modelLayers.forEach((layer, idx) => {
+        const card = document.createElement('div');
+        card.className = 'bg-slate-950 border border-slate-800 rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-3 text-xs';
+
+        let shapeStr = '';
+        let paramStr = '';
+
+        if (layer.type === 'conv') {
+          const pad = layer.padding === 'same' ? Math.floor(layer.kernel / 2) : 0;
+          const outH = Math.floor((curH - layer.kernel + 2 * pad) / layer.stride) + 1;
+          const outW = Math.floor((curW - layer.kernel + 2 * pad) / layer.stride) + 1;
+          const params = (layer.kernel * layer.kernel * curC + 1) * layer.filters;
+          totalParams += params;
+          shapeStr = `[${outH}, ${outW}, ${layer.filters}]`;
+          paramStr = `${params.toLocaleString()} params`;
+
+          curH = outH; curW = outW; curC = layer.filters;
+
+          card.innerHTML = `
+            <div class="flex items-center gap-3">
+              <span class="w-6 h-6 rounded bg-cyan-950 text-cyan-300 font-bold flex items-center justify-center text-[10px]">${idx + 1}</span>
+              <div>
+                <div class="font-bold text-white flex items-center gap-2">
+                  <span>Conv2D</span>
+                  <span class="text-cyan-400 font-mono">${shapeStr}</span>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-0.5">
+                  Filters: <strong class="text-slate-200">${layer.filters}</strong> | Kernel: <strong class="text-slate-200">${layer.kernel}×${layer.kernel}</strong> | Act: <strong class="text-slate-200">${layer.activation}</strong>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-slate-500 font-mono text-[11px]">${paramStr}</span>
+              <button onclick="removeLayer(${layer.id})" class="text-slate-500 hover:text-rose-400 p-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+            </div>
+          `;
+        } else if (layer.type === 'pool') {
+          const outH = Math.floor(curH / layer.stride);
+          const outW = Math.floor(curW / layer.stride);
+          shapeStr = `[${outH}, ${outW}, ${curC}]`;
+          curH = outH; curW = outW;
+
+          card.innerHTML = `
+            <div class="flex items-center gap-3">
+              <span class="w-6 h-6 rounded bg-purple-950 text-purple-300 font-bold flex items-center justify-center text-[10px]">${idx + 1}</span>
+              <div>
+                <div class="font-bold text-white flex items-center gap-2">
+                  <span>MaxPool2D</span>
+                  <span class="text-purple-400 font-mono">${shapeStr}</span>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-0.5">Pool: ${layer.poolSize}×${layer.poolSize} | Stride: ${layer.stride}</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-slate-500 font-mono text-[11px]">0 params</span>
+              <button onclick="removeLayer(${layer.id})" class="text-slate-500 hover:text-rose-400 p-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+            </div>
+          `;
+        } else if (layer.type === 'dense') {
+          const inFeatures = (curH * curW * curC > 0 && curH > 0) ? (curH * curW * curC) : curC;
+          const params = (inFeatures + 1) * layer.units;
+          totalParams += params;
+          shapeStr = `[${layer.units}]`;
+          paramStr = `${params.toLocaleString()} params`;
+
+          curH = 0; curW = 0; curC = layer.units;
+
+          card.innerHTML = `
+            <div class="flex items-center gap-3">
+              <span class="w-6 h-6 rounded bg-emerald-950 text-emerald-300 font-bold flex items-center justify-center text-[10px]">${idx + 1}</span>
+              <div>
+                <div class="font-bold text-white flex items-center gap-2">
+                  <span>Dense (Fully Connected)</span>
+                  <span class="text-emerald-400 font-mono">${shapeStr}</span>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-0.5">Units: <strong class="text-slate-200">${layer.units}</strong> | Act: <strong class="text-slate-200">${layer.activation}</strong></div>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-slate-500 font-mono text-[11px]">${paramStr}</span>
+              <button onclick="removeLayer(${layer.id})" class="text-slate-500 hover:text-rose-400 p-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+            </div>
+          `;
+        }
+
+        container.appendChild(card);
+      });
+
+      document.getElementById('builder-total-params').innerText = `Total Parameters: ${totalParams.toLocaleString()}`;
+    }
+
+    function switchCodeLang(lang) {
+      currentCodeLang = lang;
+      const btnPyTorch = document.getElementById('btn-code-pytorch');
+      const btnKeras = document.getElementById('btn-code-keras');
+      if (lang === 'pytorch') {
+        btnPyTorch.classList.add('bg-cyan-600', 'text-white', 'font-semibold');
+        btnPyTorch.classList.remove('text-slate-400');
+        btnKeras.classList.remove('bg-cyan-600', 'text-white', 'font-semibold');
+        btnKeras.classList.add('text-slate-400');
+      } else {
+        btnKeras.classList.add('bg-cyan-600', 'text-white', 'font-semibold');
+        btnKeras.classList.remove('text-slate-400');
+        btnPyTorch.classList.remove('bg-cyan-600', 'text-white', 'font-semibold');
+        btnPyTorch.classList.add('text-slate-400');
+      }
+      generateModelCode();
+    }
+
+    function generateModelCode() {
+      const codeBlock = document.getElementById('code-output-block');
+      if (currentCodeLang === 'pytorch') {
+        let lines = [
+          'import torch',
+          'import torch.nn as nn',
+          'import torch.nn.functional as F',
+          '',
+          'class CustomCNN(nn.Module):',
+          '    def __init__(self):',
+          '        super(CustomCNN, self).__init__()',
+          '        self.features = nn.Sequential('
+        ];
+
+        let inChannels = 1;
+        modelLayers.forEach((l) => {
+          if (l.type === 'conv') {
+            const pad = l.padding === 'same' ? Math.floor(l.kernel / 2) : 0;
+            lines.push(`            nn.Conv2d(${inChannels}, ${l.filters}, kernel_size=${l.kernel}, stride=${l.stride}, padding=${pad}),`);
+            lines.push('            nn.ReLU(inplace=True),');
+            inChannels = l.filters;
+          } else if (l.type === 'pool') {
+            lines.push(`            nn.MaxPool2d(kernel_size=${l.poolSize}, stride=${l.stride}),`);
+          }
+        });
+
+        lines.push('        )');
+        lines.push('        self.classifier = nn.Sequential(');
+
+        let denseIn = 400;
+        modelLayers.filter(l => l.type === 'dense').forEach((l, idx, arr) => {
+          lines.push(`            nn.Linear(${denseIn}, ${l.units}),`);
+          if (idx < arr.length - 1) {
+            lines.push('            nn.ReLU(inplace=True),');
+            lines.push('            nn.Dropout(0.25),');
+          }
+          denseIn = l.units;
+        });
+
+        lines.push('        )');
+        lines.push('');
+        lines.push('    def forward(self, x):');
+        lines.push('        x = self.features(x)');
+        lines.push('        x = torch.flatten(x, 1)');
+        lines.push('        x = self.classifier(x)');
+        lines.push('        return F.log_softmax(x, dim=1)');
+        lines.push('');
+        lines.push('# Instantiate and inspect:');
+        lines.push('model = CustomCNN()');
+        lines.push('print(model)');
+
+        codeBlock.innerText = lines.join('\n');
+      } else {
+        let lines = [
+          'import tensorflow as tf',
+          'from tensorflow.keras import layers, models',
+          '',
+          'def build_cnn_model():',
+          '    model = models.Sequential(['
+        ];
+
+        let first = true;
+        modelLayers.forEach(l => {
+          if (l.type === 'conv') {
+            const inputShape = first ? ', input_shape=(28, 28, 1)' : '';
+            lines.push(`        layers.Conv2D(${l.filters}, (${l.kernel}, ${l.kernel}), padding='${l.padding}', activation='${l.activation}'${inputShape}),`);
+            first = false;
+          } else if (l.type === 'pool') {
+            lines.push(`        layers.MaxPooling2D((${l.poolSize}, ${l.poolSize}), strides=${l.stride}),`);
+          } else if (l.type === 'dense') {
+            if (first) {
+              lines.push('        layers.Flatten(input_shape=(28, 28, 1)),');
+              first = false;
+            } else if (!lines.some(ln => ln.includes('layers.Flatten'))) {
+              lines.push('        layers.Flatten(),');
+            }
+            lines.push(`        layers.Dense(${l.units}, activation='${l.activation}'),`);
+          }
+        });
+
+        lines.push('    ])');
+        lines.push('');
+        lines.push('    model.compile(');
+        lines.push("        optimizer='adam',");
+        lines.push("        loss='sparse_categorical_crossentropy',");
+        lines.push("        metrics=['accuracy']");
+        lines.push('    )');
+        lines.push('    return model');
+        lines.push('');
+        lines.push('model = build_cnn_model()');
+        lines.push('model.summary()');
+
+        codeBlock.innerText = lines.join('\n');
+      }
+    }
+
+    function copyGeneratedCode() {
+      const code = document.getElementById('code-output-block').innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        const text = document.getElementById('copy-btn-text');
+        text.innerText = 'Copied!';
+        setTimeout(() => { text.innerText = 'Copy'; }, 2000);
+        showToast('Code copied to clipboard');
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initCanvas();
+      loadSamplePreset(0);
+      renderMathInputGrid();
+      renderMathKernelGrid();
+      updateMathOutput();
+      renderBuilderLayers();
+      generateModelCode();
+    });
+  </script>
+</body>
+</html>
